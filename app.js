@@ -1,12 +1,12 @@
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 3000;
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
 const authenticate = require("./Authentication/authenticateUser");
 
 const hbs = require("hbs");
 
+require("dotenv").config({ path: "/Users/rohanmote/Test_MERN_Project/MERN_Project/.env" });
 require("./src/DB/connection");
 const userData = require("./src/Models/userDataSchema");
 const userRouter = require("./src/Routers/userDataRouters");
@@ -55,7 +55,7 @@ app.get("/signOut", authenticate, async (req, res) => {
         const getData = req.getData;
         const getCurrentToken = req.getCurrentToken;
 
-        getData.tokenVal = getData.tokenVal.filter((curVal, index)=>{
+        getData.tokenVal = getData.tokenVal.filter((curVal, index) => {
             return getCurrentToken !== curVal.firstToken;
         });
 
@@ -68,38 +68,56 @@ app.get("/signOut", authenticate, async (req, res) => {
     }
 })
 
+
 app.post("/register", async (req, res) => {
     try {
         const getPassword = req.body.password;
         const getConfirmPassword = req.body.confirmPassword;
+        const getEmail = req.body.email;
 
-        if (getPassword === getConfirmPassword) {
-            const insertData = new userData({
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                email: req.body.email,
-                password: req.body.password,
-                confirmPassword: req.body.confirmPassword,
-                mobile: req.body.mobile,
-            });
+        const checkUser = await userData.findOne({ email: getEmail });
 
-            const registrationToken = await insertData.createRegistrationToken();
-            console.log("Registration Token = " + registrationToken);
-
-
-            res.cookie("registartionCookie", registrationToken);
-
-
-
-            const getData = await insertData.save();
-            res.render("indexFile");
+        //Checking if a User with the provided email already exists...
+        if (checkUser) {
+            res.render("AlreadyExistsUser");
         }
         else {
-            res.render("PasswordErrorPage")
+
+            const { firstName, lastName, email, password, confirmPassword, mobile } = req.body; //OBJECT Destructuring (Its just a way to write the statements simply whithout writing them individually and repetadely
+
+            if (getPassword === getConfirmPassword) {
+                const insertData = new userData({
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    password: password,
+                    confirmPassword: confirmPassword,
+                    mobile: mobile,
+                });
+
+                const registrationToken = await insertData.createRegistrationToken();
+                console.log("Registration Token = " + registrationToken);
+
+
+                res.cookie("registartionCookie", registrationToken);
+
+
+
+                const getData = await insertData.save();
+                const getFullName = getData.firstName + " " + getData.lastName;
+
+                res.render("indexFile", {
+                    profileName: getFullName,
+                });
+            }
+            else {
+                res.render("PasswordErrorPage")
+            }
         }
 
 
     } catch (err) {
+        console.log(err);
         res.render("ErrorPage");
     }
 
@@ -140,9 +158,6 @@ app.post("/logIn", async (req, res) => {
 
 
 
-
-
-
-app.listen(PORT, "127.0.0.1", () => {
+app.listen(process.env.PORT, "127.0.0.1", () => {
     console.log("Server Connected Successfully!!");
 })
