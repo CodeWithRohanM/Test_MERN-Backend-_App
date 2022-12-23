@@ -80,12 +80,14 @@ documentSchema.methods.createLogInToken = async function () {
 
 
 documentSchema.pre("save", async function (next) {
+    // convert password only when password field is changed or modified. We dont want to chnage password every time user saves a document into document.
     try {
-        if(this.isModified("password"))
+        if(this.isModified("password")) 
         {
             this.password = await bcrypt.hash(this.password, 9);
             this.confirmPassword = undefined;
         }
+        next();
     } catch (err) {
         console.log(err);
     }

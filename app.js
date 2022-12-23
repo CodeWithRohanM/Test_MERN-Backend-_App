@@ -71,6 +71,7 @@ app.get("/signOut", authenticate, async (req, res) => {
 
 app.post("/register", async (req, res) => {
     try {
+
         const getPassword = req.body.password;
         const getConfirmPassword = req.body.confirmPassword;
         const getEmail = req.body.email;
@@ -99,7 +100,7 @@ app.post("/register", async (req, res) => {
                 console.log("Registration Token = " + registrationToken);
 
 
-                res.cookie("registartionCookie", registrationToken);
+                res.cookie("registrationCookie", registrationToken);
 
 
 
@@ -130,6 +131,7 @@ app.post("/logIn", async (req, res) => {
         const getPassword = req.body.password;
 
         const getData = await userData.findOne({ email: getEmail });
+
         const validateUser = await bcrypt.compare(getPassword, getData.password);
 
 
@@ -147,7 +149,7 @@ app.post("/logIn", async (req, res) => {
             });
         }
         else {
-            res.render("ErrorPage");
+            res.render("logInPage");
         }
 
     } catch (err) {
