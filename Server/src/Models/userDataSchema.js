@@ -63,7 +63,7 @@ documentSchema.methods.createRegistrationToken = async function () {
 
 documentSchema.methods.createLogInToken = async function () {
     try {
-        const token = await jwt.sign({ id: this._id.toString() }, process.env.SECRET_KEY);
+        const token = jwt.sign({ id: this._id.toString() }, process.env.SECRET_KEY);
 
         this.tokenVal = this.tokenVal.concat({ firstToken: token });
         this.confirmPassword = await bcrypt.hash(this.password, 9);
